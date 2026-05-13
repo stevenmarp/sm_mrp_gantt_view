@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_mrp_workorder_sm_gantt_workcenter" model="ir.ui.view">
+            <field name="name">mrp.workorder.sm_mrp_gantt.workcenter</field>
+            <field name="model">mrp.workorder</field>
+            <field name="priority">20</field>
+            <field name="type">sm_mrp_gantt</field>
+            <field name="arch" type="xml">
+                <sm_mrp_gantt
+                    id_field="id"
+                    text="name"
+                    date_start="date_start"
+                    duration="sm_gantt_duration_hours"
+                    duration_label="Hours"
+                    duration_short="h"
+                    progress="progress"
+                    open="sm_gantt_open"
+                    links_serialized_json="sm_gantt_links_json"
+                    link_create_method="sm_gantt_create_link"
+                    link_delete_method="sm_gantt_delete_link"
+                    group_field="workcenter_id"
+                    group_label="Work Center"
+                    group_res_model="mrp.workcenter"
+                    group_icon="fa fa-industry"
+                />
+            </field>
+        </record>
+
+        <record id="view_mrp_workorder_sm_gantt_production" model="ir.ui.view">
+            <field name="name">mrp.workorder.sm_mrp_gantt.production</field>
+            <field name="model">mrp.workorder</field>
+            <field name="priority">25</field>
+            <field name="type">sm_mrp_gantt</field>
+            <field name="arch" type="xml">
+                <sm_mrp_gantt
+                    id_field="id"
+                    text="name"
+                    date_start="date_start"
+                    duration="sm_gantt_duration_hours"
+                    duration_label="Hours"
+                    duration_short="h"
+                    progress="progress"
+                    open="sm_gantt_open"
+                    links_serialized_json="sm_gantt_links_json"
+                    link_create_method="sm_gantt_create_link"
+                    link_delete_method="sm_gantt_delete_link"
+                    group_field="production_id"
+                    group_label="Manufacturing Order"
+                    group_res_model="mrp.production"
+                    group_icon="fa fa-cogs"
+                />
+            </field>
+        </record>
+
+        <record id="view_mrp_workorder_form_sm_gantt" model="ir.ui.view">
+            <field name="name">mrp.workorder.form.sm_mrp_gantt</field>
+            <field name="model">mrp.workorder</field>
+            <field name="inherit_id" ref="mrp.mrp_production_workorder_form_view_inherit"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='time_tracking']" position="before">
+                    <page string="Gantt Planning" name="sm_mrp_gantt_planning">
+                        <group>
+                            <group string="Schedule">
+                                <field name="date_start"/>
+                                <field name="date_finished"/>
+                                <field name="sm_gantt_duration_hours"/>
+                                <field name="progress" readonly="1"/>
+                                <field name="sm_gantt_open"/>
+                            </group>
+                            <group string="Context">
+                                <field name="production_id" readonly="1"/>
+                                <field name="workcenter_id"/>
+                                <field name="state" readonly="1"/>
+                                <field name="duration_expected" widget="float_time"/>
+                            </group>
+                        </group>
+                        <separator string="Dependencies"/>
+                        <field name="blocked_by_workorder_ids" readonly="1">
+                            <list>
+                                <field name="production_id"/>
+                                <field name="name"/>
+                                <field name="workcenter_id"/>
+                                <field name="date_start"/>
+                                <field name="date_finished"/>
+                                <field name="state"/>
+                            </list>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="mrp.mrp_workorder_todo" model="ir.actions.act_window">
+            <field name="view_mode">list,kanban,form,sm_mrp_gantt,calendar,pivot,graph</field>
+        </record>
+
+        <record id="mrp.action_mrp_workorder_workcenter" model="ir.actions.act_window">
+            <field name="view_mode">sm_mrp_gantt,list,form,calendar,pivot,graph</field>
+            <field name="view_id" ref="view_mrp_workorder_sm_gantt_workcenter"/>
+        </record>
+
+        <record id="mrp.action_mrp_workorder_production" model="ir.actions.act_window">
+            <field name="view_mode">sm_mrp_gantt,list,form,calendar,pivot,graph</field>
+            <field name="view_id" ref="view_mrp_workorder_sm_gantt_production"/>
+        </record>
+
+        <record id="mrp.action_work_orders" model="ir.actions.act_window">
+            <field name="view_mode">sm_mrp_gantt,list,form,pivot,graph,calendar</field>
+            <field name="view_id" ref="view_mrp_workorder_sm_gantt_workcenter"/>
+        </record>
+
+    </data>
+</odoo>

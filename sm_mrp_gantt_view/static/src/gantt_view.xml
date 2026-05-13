@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="sm_mrp_gantt_view.GanttView">
+        <div t-att-class="props.className" t-ref="root">
+            <Layout className="''" display="props.display">
+                <t t-set-slot="control-panel-additional-actions">
+                    <CogMenu/>
+                </t>
+                <t t-set-slot="layout-actions">
+                    <SearchBar toggler="searchBarToggler"/>
+                </t>
+                <t t-set-slot="control-panel-navigation-additional">
+                    <t t-component="searchBarToggler.component" t-props="searchBarToggler.props"/>
+                </t>
+                <t t-if="model.isReady">
+                    <t t-component="props.Renderer"
+                       model="model"
+                       archInfo="props.archInfo"
+                       onTaskDoubleClick.bind="onTaskDoubleClick"/>
+                </t>
+            </Layout>
+        </div>
+    </t>
+
+    <t t-name="sm_mrp_gantt_view.GanttRenderer">
+        <div class="o_sm_mrp_gantt_root" t-att-class="state.fullscreen ? 'o_sm_mrp_gantt_fullscreen' : ''">
+            <div class="o_sm_mrp_gantt_toolbar">
+                <div class="o_sm_mrp_gantt_toolbar_left">
+                    <div class="o_sm_mrp_gantt_nav_group btn-group">
+                        <button type="button" class="btn btn-sm btn-light" t-on-click="onPrev" title="Previous">
+                            <i class="fa fa-chevron-left"/>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-primary" t-on-click="onToday" title="Today">
+                            Today
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light" t-on-click="onNext" title="Next">
+                            <i class="fa fa-chevron-right"/>
+                        </button>
+                    </div>
+
+                    <div class="o_sm_mrp_gantt_scale_group btn-group ms-2">
+                        <t t-foreach="getScaleButtons()" t-as="scale" t-key="scale.name">
+                            <button type="button"
+                                    t-att-class="'btn btn-sm ' + (state.currentScale === scale.name ? 'btn-primary' : 'btn-light')"
+                                    t-on-click="() => this.onScaleChange(scale.name)"
+                                    t-esc="scale.label"/>
+                        </t>
+                    </div>
+                </div>
+
+                <div class="o_sm_mrp_gantt_toolbar_right">
+                    <div class="o_sm_mrp_gantt_dropdown dropdown">
+                        <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown" title="Sort">
+                            <i class="fa fa-sort-amount-asc me-1"/>Sort
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" t-on-click="() => this.onSort('name_asc')">
+                                <i class="fa fa-sort-alpha-asc me-2"/>Name A-Z</a></li>
+                            <li><a class="dropdown-item" t-on-click="() => this.onSort('name_desc')">
+                                <i class="fa fa-sort-alpha-desc me-2"/>Name Z-A</a></li>
+                            <li><hr class="dropdown-divider"/></li>
+                            <li><a class="dropdown-item" t-on-click="() => this.onSort('date_asc')">
+                                <i class="fa fa-sort-numeric-asc me-2"/>Date Old-New</a></li>
+                            <li><a class="dropdown-item" t-on-click="() => this.onSort('date_desc')">
+                                <i class="fa fa-sort-numeric-desc me-2"/>Date New-Old</a></li>
+                            <li><hr class="dropdown-divider"/></li>
+                            <li><a class="dropdown-item" t-on-click="() => this.onSort('progress_asc')">
+                                <i class="fa fa-tasks me-2"/>Progress Low-High</a></li>
+                            <li><a class="dropdown-item" t-on-click="() => this.onSort('progress_desc')">
+                                <i class="fa fa-tasks me-2"/>Progress High-Low</a></li>
+                        </ul>
+                    </div>
+
+                    <button type="button"
+                            t-att-class="'btn btn-sm ' + (state.showGrid ? 'btn-primary' : 'btn-light')"
+                            t-on-click="onToggleGrid" title="Toggle Grid Panel">
+                        <i class="fa fa-columns"/>
+                    </button>
+
+                    <button type="button"
+                            t-att-class="'btn btn-sm ' + (state.showCriticalPath ? 'btn-primary' : 'btn-light')"
+                            t-on-click="onToggleCriticalPath" title="Critical Path">
+                        <i class="fa fa-road"/>
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-light" t-on-click="onZoomToFit" title="Zoom to Fit">
+                        <i class="fa fa-arrows-alt"/>
+                    </button>
+
+                    <div class="o_sm_mrp_gantt_dropdown dropdown">
+                        <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown" title="Export">
+                            <i class="fa fa-download"/>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" t-on-click="onExportSVG">
+                                <i class="fa fa-file-image-o me-2"/>Export SVG</a></li>
+                            <li><a class="dropdown-item" t-on-click="onExportExcel">
+                                <i class="fa fa-file-excel-o me-2"/>Export CSV</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="o_sm_mrp_gantt_dropdown dropdown">
+                        <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown" title="Settings">
+                            <i class="fa fa-cog"/>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end o_sm_mrp_gantt_settings_menu p-3">
+                            <li class="mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="smMrpGanttTooltip"
+                                           t-att-checked="settings.showTooltip"
+                                           t-on-change="onToggleTooltip"/>
+                                    <label class="form-check-label" for="smMrpGanttTooltip">Show Tooltips</label>
+                                </div>
+                            </li>
+                            <li class="mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="smMrpGanttProgress"
+                                           t-att-checked="settings.showProgressText"
+                                           t-on-change="onToggleProgressText"/>
+                                    <label class="form-check-label" for="smMrpGanttProgress">Show Progress %</label>
+                                </div>
+                            </li>
+                            <li class="mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="smMrpGanttDynText"
+                                           t-att-checked="settings.dynamicText"
+                                           t-on-change="onToggleDynamicText"/>
+                                    <label class="form-check-label" for="smMrpGanttDynText">Dynamic Text on Bars</label>
+                                </div>
+                            </li>
+                            <li class="mb-2">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="smMrpGanttWeekend"
+                                           t-att-checked="settings.showWeekends"
+                                           t-on-change="onToggleWeekends"/>
+                                    <label class="form-check-label" for="smMrpGanttWeekend">Highlight Weekends</label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="smMrpGanttLinks"
+                                           t-att-checked="settings.showLinks"
+                                           t-on-change="onToggleLinks"/>
+                                    <label class="form-check-label" for="smMrpGanttLinks">Show Dependencies</label>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <button type="button"
+                            t-att-class="'btn btn-sm ' + (state.fullscreen ? 'btn-primary' : 'btn-light')"
+                            t-on-click="onToggleFullscreen" title="Fullscreen">
+                        <i t-att-class="state.fullscreen ? 'fa fa-compress' : 'fa fa-expand'"/>
+                    </button>
+                </div>
+            </div>
+
+            <div class="o_sm_mrp_gantt_container flex-grow-1" t-ref="gantt_container"/>
+        </div>
+    </t>
+
+</templates>
